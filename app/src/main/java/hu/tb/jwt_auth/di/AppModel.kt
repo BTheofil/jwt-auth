@@ -7,10 +7,13 @@ import dagger.hilt.components.SingletonComponent
 import hu.tb.jwt_auth.data.data_source.ExampleApiSource
 import hu.tb.jwt_auth.data.repository.ExampleRepositoryImpl
 import hu.tb.jwt_auth.domain.repository.ExampleRepository
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import javax.inject.Singleton
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -18,12 +21,22 @@ object AppModel {
 
     @Provides
     @Singleton
-    fun provideRetrofitApi(): ExampleApiSource =
-        Retrofit.Builder()
+    fun provideRetrofitApi(): ExampleApiSource {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // Change the log level as needed
+        }
+
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+
+        return Retrofit.Builder()
             .baseUrl("https://example.vividmindsoft.com")
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
             .build()
             .create()
+    }
 
     @Provides
     @Singleton

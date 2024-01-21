@@ -11,10 +11,12 @@ fun NavController.navigateToLoginScreen() {
     this.navigate(LOGIN_SCREEN_ROUTE)
 }
 
-fun NavGraphBuilder.loginScreenNavigation(){
+fun NavGraphBuilder.loginScreenNavigation(
+    navigateToHomeScreen: () -> Unit
+){
     composable(route = LOGIN_SCREEN_ROUTE){
         LoginScreen(
-
+            loginSuccess = navigateToHomeScreen
         )
     }
 }

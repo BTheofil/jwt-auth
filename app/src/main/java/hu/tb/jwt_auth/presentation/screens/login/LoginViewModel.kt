@@ -3,16 +3,20 @@ package hu.tb.jwt_auth.presentation.screens.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.tb.jwt_auth.data.repository.ExampleRepositoryImpl
+import hu.tb.jwt_auth.domain.repository.ExampleRepository
+import hu.tb.jwt_auth.domain.util.Resource
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: ExampleRepositoryImpl
+    private val repository: ExampleRepository,
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
@@ -24,6 +28,15 @@ class LoginViewModel @Inject constructor(
         val isPasswordVisible: Boolean = false,
         val isLoading: Boolean = false
     )
+
+    sealed class UiEvent {
+        data object LoginSuccess: UiEvent()
+        data class ShowPopup(val message: String) : UiEvent()
+    }
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
 
     sealed class OnEvent {
         data object LoginClick : OnEvent()
@@ -41,9 +54,16 @@ class LoginViewModel @Inject constructor(
                             isLoading = true
                         )
                     }
-                    uiState.value.also {
-                        repository.authenticate(it.userNameText, it.passwordText)
+
+                    when(val result = repository.authenticate(uiState.value.userNameText, uiState.value.passwordText)){
+                        is Resource.Success -> {
+                            _uiEvent.send(UiEvent.LoginSuccess)
+                        }
+                        is Resource.Error -> {
+                            _uiEvent.send(UiEvent.ShowPopup(result.message!!))
+                        }
                     }
+
                     _uiState.update {
                         it.copy(
                             isLoading = false

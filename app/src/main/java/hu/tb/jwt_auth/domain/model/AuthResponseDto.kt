@@ -1,8 +1,10 @@
 package hu.tb.jwt_auth.domain.model
 
-data class AuthResponseDto(
-    val access_token: String,
-    val refresh_token: String,
-    val expires_in: Int,
-    val token_type: String
+import com.google.gson.annotations.SerializedName
+
+data class AuthResponse(
+    @SerializedName("access_token") val accessToken: String,
+    @SerializedName("token_type") val tokenType: String,
+    @SerializedName("expires_in") val expiresIn: Long,
+    @SerializedName("refresh_token") val refreshToken: String
 )

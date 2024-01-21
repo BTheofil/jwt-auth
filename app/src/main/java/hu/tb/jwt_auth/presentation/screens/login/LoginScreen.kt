@@ -12,6 +12,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,13 +29,25 @@ import hu.tb.jwt_auth.presentation.screens.login.components.LoadingDialog
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
+    loginSuccess: () -> Unit,
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if(uiState.isLoading){
         LoadingDialog()
+    }
+
+    LaunchedEffect(key1 = Unit){
+        viewModel.uiEvent.collect{event ->
+            when(event){
+                LoginViewModel.UiEvent.LoginSuccess -> loginSuccess()
+                is LoginViewModel.UiEvent.ShowPopup -> {
+
+                }
+            }
+        }
     }
 
     LoginScreenContent(
