@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.tb.jwt_auth.R
-import hu.tb.jwt_auth.presentation.screens.login.components.LoadingDialog
+import hu.tb.jwt_auth.presentation.screens.login.components.MessageDialog
 
 @Composable
 fun LoginScreen(
@@ -35,17 +35,19 @@ fun LoginScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if(uiState.isLoading){
-        LoadingDialog()
+    if (uiState.isLoading || !uiState.errorMessage.isNullOrBlank()) {
+        MessageDialog(
+            errorText = uiState.errorMessage,
+            confirmButton = {
+                viewModel.onEvent(LoginViewModel.OnEvent.ClearError)
+            }
+        )
     }
 
-    LaunchedEffect(key1 = Unit){
-        viewModel.uiEvent.collect{event ->
-            when(event){
+    LaunchedEffect(key1 = Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
                 LoginViewModel.UiEvent.LoginSuccess -> loginSuccess()
-                is LoginViewModel.UiEvent.ShowPopup -> {
-
-                }
             }
         }
     }

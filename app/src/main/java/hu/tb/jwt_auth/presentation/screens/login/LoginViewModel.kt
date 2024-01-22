@@ -9,7 +9,6 @@ import hu.tb.jwt_auth.domain.util.Resource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -28,12 +27,12 @@ class LoginViewModel @Inject constructor(
         val userNameText: String = "",
         val passwordText: String = "",
         val isPasswordVisible: Boolean = false,
-        val isLoading: Boolean = false
+        val isLoading: Boolean = false,
+        val errorMessage: String? = null,
     )
 
     sealed class UiEvent {
         data object LoginSuccess : UiEvent()
-        data class ShowPopup(val message: String) : UiEvent()
     }
 
     private val _uiEvent = Channel<UiEvent>()
@@ -58,6 +57,7 @@ class LoginViewModel @Inject constructor(
     sealed class OnEvent {
         data object LoginClick : OnEvent()
         data object PasswordVisibilityChange : OnEvent()
+        data object ClearError : OnEvent()
         data class OnUserNameTextChange(val text: String) : OnEvent()
         data class OnPasswordTextChange(val text: String) : OnEvent()
     }
@@ -85,7 +85,11 @@ class LoginViewModel @Inject constructor(
                         }
 
                         is Resource.Error -> {
-                            _uiEvent.send(UiEvent.ShowPopup(result.message!!))
+                            _uiState.update {
+                                it.copy(
+                                    errorMessage = result.message
+                                )
+                            }
                         }
                     }
 
@@ -114,6 +118,9 @@ class LoginViewModel @Inject constructor(
                 it.copy(passwordText = event.text)
             }
 
+            OnEvent.ClearError -> _uiState.update {
+                it.copy(errorMessage = "")
+            }
         }
     }
 }
