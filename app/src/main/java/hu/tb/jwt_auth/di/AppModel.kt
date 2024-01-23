@@ -1,9 +1,12 @@
 package hu.tb.jwt_auth.di
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import hu.tb.jwt_auth.data.NetworkConnectivityObserver
 import hu.tb.jwt_auth.data.data_source.ExampleApiSource
 import hu.tb.jwt_auth.data.repository.ExampleRepositoryImpl
 import hu.tb.jwt_auth.domain.repository.ExampleRepository
@@ -43,5 +46,10 @@ object AppModel {
     @Singleton
     fun provideExampleRepository(api: ExampleApiSource): ExampleRepository =
         ExampleRepositoryImpl(api = api)
+
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivity(@ApplicationContext appContext: Context): NetworkConnectivityObserver =
+        NetworkConnectivityObserver(context = appContext)
 
 }

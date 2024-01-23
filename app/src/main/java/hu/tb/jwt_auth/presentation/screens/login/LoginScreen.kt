@@ -32,7 +32,6 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     loginSuccess: () -> Unit,
 ) {
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading || !uiState.errorMessage.isNullOrBlank()) {
