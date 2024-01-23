@@ -40,15 +40,11 @@ class LoginViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            dataStore.getUser.collect { result ->
-                if (result.username.isNotBlank() && result.password.isNotBlank()) {
-                    _uiState.update {
-                        it.copy(
-                            userNameText = result.username,
-                            passwordText = result.password
-                        )
-                    }
-                    onEvent(OnEvent.LoginClick)
+            dataStore.getToken.collect { result ->
+                if (!result.isNullOrBlank() ) {
+                    onEvent(OnEvent.ExtendAuthentication(result))
+                } else {
+                    dataStore.clearToken()
                 }
             }
         }
@@ -58,6 +54,7 @@ class LoginViewModel @Inject constructor(
         data object LoginClick : OnEvent()
         data object PasswordVisibilityChange : OnEvent()
         data object ClearError : OnEvent()
+        data class ExtendAuthentication(val token: String): OnEvent()
         data class OnUserNameTextChange(val text: String) : OnEvent()
         data class OnPasswordTextChange(val text: String) : OnEvent()
     }
@@ -77,14 +74,46 @@ class LoginViewModel @Inject constructor(
                         uiState.value.passwordText
                     )) {
                         is Resource.Success -> {
-
-                            dataStore.setUsername(uiState.value.userNameText)
-                            dataStore.setPassword(uiState.value.passwordText)
+                            dataStore.saveToken(result.data!!.refreshToken)
 
                             _uiEvent.send(UiEvent.LoginSuccess)
                         }
 
                         is Resource.Error -> {
+                            dataStore.clearToken()
+                            _uiState.update {
+                                it.copy(
+                                    errorMessage = result.message
+                                )
+                            }
+                        }
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false
+                        )
+                    }
+                }
+            }
+
+            is OnEvent.ExtendAuthentication -> {
+                viewModelScope.launch {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    when (val result = repository.extendAuthentication(event.token)) {
+                        is Resource.Success -> {
+                            dataStore.saveToken(result.data!!.refreshToken)
+
+                            _uiEvent.send(UiEvent.LoginSuccess)
+                        }
+
+                        is Resource.Error -> {
+                            dataStore.clearToken()
                             _uiState.update {
                                 it.copy(
                                     errorMessage = result.message

@@ -14,6 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import javax.inject.Singleton
 
+const val BASE_URL = "https://example.vividmindsoft.com"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -23,7 +24,7 @@ object AppModel {
     @Singleton
     fun provideRetrofitApi(): ExampleApiSource {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // Change the log level as needed
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
         val client = OkHttpClient.Builder()
@@ -31,7 +32,7 @@ object AppModel {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl("https://example.vividmindsoft.com")
+            .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

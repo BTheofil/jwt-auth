@@ -2,7 +2,7 @@ package hu.tb.jwt_auth.data.repository
 
 import android.util.Log
 import hu.tb.jwt_auth.data.data_source.ExampleApiSource
-import hu.tb.jwt_auth.domain.model.AuthResponse
+import hu.tb.jwt_auth.domain.model.AuthResponseDto
 import hu.tb.jwt_auth.domain.repository.ExampleRepository
 import hu.tb.jwt_auth.domain.util.Resource
 import javax.inject.Inject
@@ -14,7 +14,7 @@ class ExampleRepositoryImpl @Inject constructor(
     override suspend fun authenticate(
         username: String,
         password: String
-    ): Resource<AuthResponse> {
+    ): Resource<AuthResponseDto> {
         return try {
             val result = api.authenticate(username = username, password = password)
 
@@ -25,7 +25,7 @@ class ExampleRepositoryImpl @Inject constructor(
                 )
 
                 200 -> Resource.Success(
-                    data = AuthResponse(
+                    data = AuthResponseDto(
                         accessToken = result.body()!!.accessToken,
                         tokenType = result.body()!!.tokenType,
                         expiresIn = result.body()!!.expiresIn,
@@ -50,7 +50,38 @@ class ExampleRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun extendAuthentication() {
-        api.extendAuthentication("")
+    override suspend fun extendAuthentication(token: String): Resource<AuthResponseDto> {
+        return try {
+            val result = api.extendAuthentication(refreshToken = token)
+
+            when (result.code()) {
+                401 -> Resource.Error(
+                    message = "Invalid username or password.",
+                    data = null
+                )
+
+                200 -> Resource.Success(
+                    data = AuthResponseDto(
+                        accessToken = result.body()!!.accessToken,
+                        tokenType = result.body()!!.tokenType,
+                        expiresIn = result.body()!!.expiresIn,
+                        refreshToken = result.body()!!.refreshToken
+                    )
+                )
+
+                else ->
+                    Resource.Error(
+                        message = "Unexpected error",
+                        data = null
+                    )
+            }
+
+        } catch (e: Exception) {
+            Log.e("Repository Auth Call", e.message.toString())
+            Resource.Error(
+                message = "Unexpected error",
+            )
+        }
+
     }
 }

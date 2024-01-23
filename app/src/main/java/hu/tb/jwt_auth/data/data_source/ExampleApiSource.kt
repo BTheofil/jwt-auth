@@ -1,6 +1,6 @@
 package hu.tb.jwt_auth.data.data_source
 
-import hu.tb.jwt_auth.domain.model.AuthResponse
+import hu.tb.jwt_auth.domain.model.AuthResponseDto
 import retrofit2.http.POST
 import retrofit2.Response
 import retrofit2.http.Field
@@ -15,7 +15,7 @@ interface ExampleApiSource {
         @Field("password") password: String,
         @Field("grant_type") grantType: String = "password",
         @Field("client_id") clientId: String = "69bfdce9-2c9f-4a12-aa7b-4fe15e1228dc"
-    ): Response<AuthResponse>
+    ): Response<AuthResponseDto>
 
     @FormUrlEncoded
     @POST("/idp/api/v1/token")
@@ -23,5 +23,5 @@ interface ExampleApiSource {
         @Field("refresh_token") refreshToken: String,
         @Field("grant_type") grantType: String = "refresh_token",
         @Field("client_id") clientId: String = "69bfdce9-2c9f-4a12-aa7b-4fe15e1228dc"
-    ): Response<AuthResponse>
+    ): Response<AuthResponseDto>
 }

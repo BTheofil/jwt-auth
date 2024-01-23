@@ -5,9 +5,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import hu.tb.jwt_auth.data.PreferenceKeys.PASSWORD
-import hu.tb.jwt_auth.data.PreferenceKeys.USERNAME
-import hu.tb.jwt_auth.domain.model.Login
+import hu.tb.jwt_auth.data.PreferenceKeys.REFRESH_TOKEN
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,27 +19,23 @@ class DataStoreManager @Inject constructor(
 ) {
     private val settingsDataStore = appContext.dataStore
 
-    suspend fun setUsername(username: String) {
+    suspend fun saveToken(token: String) {
         settingsDataStore.edit { preferences ->
-            preferences[USERNAME] = username
+            preferences[REFRESH_TOKEN] = token
         }
     }
 
-    suspend fun setPassword(username: String) {
+    suspend fun clearToken() {
         settingsDataStore.edit { preferences ->
-            preferences[PASSWORD] = username
+            preferences.remove(REFRESH_TOKEN)
         }
     }
 
-    val getUser: Flow<Login> = settingsDataStore.data.map { preferences ->
-        Login(
-            username = preferences[USERNAME] ?: "",
-            password = preferences[PASSWORD] ?: ""
-        )
+    val getToken: Flow<String?> = settingsDataStore.data.map { preferences ->
+        preferences[REFRESH_TOKEN]
     }
 }
 
 object PreferenceKeys {
-    val USERNAME = stringPreferencesKey("username")
-    val PASSWORD = stringPreferencesKey("password")
+    val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
 }
